@@ -23,6 +23,21 @@
   - `all_numbers_multi_city_op.xlsx`（总汇总）
   - `{城市}_{运营商}_numbers.xlsx`
 
+### 🧧 新增：双色球历史开奖抓取
+
+- 目标页面：https://www.cwl.gov.cn/ygkj/wqkjgg/ssq/
+- 直接调用官网接口抓取最近 N 期双色球开奖信息，并导出为 CSV / Excel。
+- 运行命令：
+
+```bash
+python cwl_ssq_scraper.py  # 默认抓取最近 30 期
+```
+
+生成的文件：
+
+- `ssq_history.xlsx`
+- `ssq_history.csv`
+
 ---
 
 ## 📦 环境准备
