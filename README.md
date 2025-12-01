@@ -26,12 +26,14 @@
 ### 🧧 新增：双色球历史开奖抓取
 
 - 目标页面：https://www.cwl.gov.cn/ygkj/wqkjgg/ssq/
-- 直接调用官网接口抓取最近 N 期双色球开奖信息，并导出为 CSV / Excel。
+- 直接调用官网接口抓取全部 60 页（每页 30 期）双色球开奖信息，并导出为 CSV / Excel。
 - 运行命令：
 
 ```bash
-python cwl_ssq_scraper.py  # 默认抓取最近 30 期
+python cwl_ssq_scraper.py  # 默认抓取全部 60 页（约 1800 期）
 ```
+
+如需自定义页数或每页条数，可在 `cwl_ssq_scraper.py` 的 `fetch_all_draws(max_pages=60, page_size=30)` 调用中调整参数。
 
 生成的文件：
 

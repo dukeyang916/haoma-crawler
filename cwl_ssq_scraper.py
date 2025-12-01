@@ -52,11 +52,12 @@ class LotteryDraw:
         )
 
 
-def fetch_draws(issue_count: int = 30) -> List[LotteryDraw]:
-    """Fetch historical SSQ draw records.
+def fetch_draws(issue_count: int = 30, page_no: int = 1) -> List[LotteryDraw]:
+    """Fetch a single page of historical SSQ draw records.
 
     Args:
-        issue_count: How many recent issues to fetch. The upstream API allows up to 30 at a time.
+        issue_count: How many results to fetch for the page (the upstream API allows up to 30 at a time).
+        page_no: The page number to retrieve.
     """
     params = {
         "name": "ssq",
@@ -65,6 +66,7 @@ def fetch_draws(issue_count: int = 30) -> List[LotteryDraw]:
         "issueEnd": "",
         "dayStart": "",
         "dayEnd": "",
+        "pageNo": str(page_no),
     }
     response = requests.get(API_URL, params=params, headers=DEFAULT_HEADERS, timeout=15)
     response.raise_for_status()
@@ -94,6 +96,32 @@ def fetch_draws(issue_count: int = 30) -> List[LotteryDraw]:
     return [LotteryDraw.from_api_payload(item) for item in records]
 
 
+def fetch_all_draws(max_pages: int = 60, page_size: int = 30) -> List[LotteryDraw]:
+    """Fetch all paginated SSQ draw records (最多 60 页，每页 30 期)."""
+
+    all_draws: List[LotteryDraw] = []
+    seen_issues = set()
+
+    for page_no in range(1, max_pages + 1):
+        page_draws = fetch_draws(issue_count=page_size, page_no=page_no)
+        if not page_draws:
+            break
+
+        for draw in page_draws:
+            if draw.issue not in seen_issues:
+                all_draws.append(draw)
+                seen_issues.add(draw.issue)
+
+        if len(page_draws) < page_size:
+            # Reached the final partial page.
+            break
+
+    if not all_draws:
+        raise ValueError("未能抓取到任何双色球开奖数据，请检查网络或 API 参数。")
+
+    return all_draws
+
+
 def export_to_excel(draws: List[LotteryDraw], file_path: str = "ssq_history.xlsx") -> None:
     df = pd.DataFrame([asdict(draw) for draw in draws])
     df.to_excel(file_path, index=False)
@@ -105,7 +133,7 @@ def export_to_csv(draws: List[LotteryDraw], file_path: str = "ssq_history.csv") 
 
 
 if __name__ == "__main__":
-    draws = fetch_draws(issue_count=30)
+    draws = fetch_all_draws(max_pages=60, page_size=30)
     export_to_excel(draws)
     export_to_csv(draws)
     print(f"已保存 {len(draws)} 期双色球数据到 ssq_history.xlsx 和 ssq_history.csv")
